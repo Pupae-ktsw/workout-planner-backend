@@ -21,6 +21,9 @@ app.get('/', (req, res) => {
     res.status(200).json({message: 'On Home Page'}); 
 });
 
+//Youtube
+app.use('/search', require('./routes/youtube_route'));
+
 app.use('/users', require('./routes/users_route'));
 app.use('/programs', require('./routes/programs_route'));
 app.use(errorHandler);
