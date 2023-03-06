@@ -9,7 +9,6 @@ const {
     updateUser,
     deleteUser
 } = require('../controllers/user_controller');
-const { validate } = require('../models/user_model');
 
 // router.route('/').get(getUsers);
 router.route('/signup').post(signupUser);

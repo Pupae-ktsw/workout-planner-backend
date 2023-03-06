@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const validateToken = require('../middleware/auth');
 const {
     getPrograms,
     getThisProgram,
@@ -8,12 +9,13 @@ const {
     deleteProgram
 } = require('../controllers/program_controller');
 
+router.use(validateToken);
 router.route('/').get(getPrograms).post(createProgram);
 router.route('/:id').get(getThisProgram)
                     .put(updateProgram)
                     .delete(deleteProgram);
 
-router.route('/:id/').get();
+// router.route('/:id/').get();
 
 /* /programs/<programId>/2 */
 

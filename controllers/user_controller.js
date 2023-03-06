@@ -44,18 +44,18 @@ const loginUser = asyncHandler(async (req, res) => {
     const accessToken = jwt.sign(
         {
             user: {
-                name: user.username,
+                name: user.name,
                 email: user.email,
                 id: user.id
             },
         },
         process.env.ACCESS_TOKEN_SECRET,
     );
-    res.status(200).json(accessToken);
+    res.status(200).json({accessToken: accessToken, message: 'Login Success'});
 });
 
 // @desc    Signup User
-// @route   POST /users/register
+// @route   POST /users/signup
 // @access  Public
 const signupUser = asyncHandler(async (req, res) => {
     const {name, email, password} = req.body;

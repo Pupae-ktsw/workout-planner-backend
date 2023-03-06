@@ -3,24 +3,27 @@ const DayOfProgram = require('./dayOfProgram_model');
 const User = require('./user_model');
 
 const programSchema = mongoose.Schema({
+    // _id: String,
     programName: {
         type: String,
         required: true,
         maxlength: 40
     },
-    playlistURL: {
-        type: String,
-        required: true,
-    },
+    // playlistURL: {
+    //     type: String,
+    // },
     programStatus: {
         type: String,
         default: 'Challenging',
-        enum: ['Challenging', 'Completed', 'Non-Start']
+        enum: ['Challenging', 'Completed']
     },
-    startEndDate: {
-        type: Map,
-        of: Date
-    },
+    startEndDate: [{startDate: Date, endDate: Date}],
+    // {
+    //     type: Map,
+    //     of: {
+    //         value: String
+    //     }
+    // },
     color: {
         type: String,
         required: true
@@ -48,10 +51,12 @@ const programSchema = mongoose.Schema({
     repeatWeekly: [Number],
     totalDays: Number,
     thumbnail: String,
-    day_id: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: 'DayOfProgram',
-    },
+    // day_id: {
+    //     type: [mongoose.Schema.Types.ObjectId],
+    //     ref: 'DayOfProgram',
+    // },
+    // dates: [Date],
+    latestDay: Number,
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

@@ -8,16 +8,16 @@ const workoutSchema = mongoose.Schema({
         default: 'Undone',
         enum: ['Done', 'Undone']
     },
-    youtubeVid_id: {
-        type: mongoose.ObjectId,
-        ref: 'YoutubeVideo',
-        required: true
-    },
-    dayOfProgram_id: {
-        type: mongoose.ObjectId,
-        ref: 'DayOfProgram',
-        required: true,
-    }
+    // youtubeVid_id: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'YoutubeVideo',
+    //     required: true
+    // },
+    // dayOfProgram_id: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'DayOfProgram',
+    //     required: true,
+    // }
 });
 
 module.exports = mongoose.model('Workout', workoutSchema);
