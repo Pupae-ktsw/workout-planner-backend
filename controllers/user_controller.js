@@ -17,8 +17,8 @@ const getUsers = asyncHandler(async (req, res) => {
 // @desc    Get Specific Users
 // @route   GET /Users/:id
 // @access  Private
-const getThisUser = asyncHandler(async (req, res) => {
-    res.status(200).json({ message: `This is user id ${req.params.id}`});
+const getLoginUser = asyncHandler(async (req, res) => {
+    res.status(200).json(req.user);
 });
 
 // @desc    Login user
@@ -110,5 +110,5 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    getUsers, getThisUser, loginUser, signupUser, updateUser, deleteUser
+    getUsers, getLoginUser, loginUser, signupUser, updateUser, deleteUser
 }

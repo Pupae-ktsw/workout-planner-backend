@@ -3,7 +3,7 @@ const router = express.Router();
 const validateToken = require('../middleware/auth');
 const {
     getUsers,
-    getThisUser,
+    getLoginUser,
     loginUser,
     signupUser,
     updateUser,
@@ -13,7 +13,7 @@ const {
 // router.route('/').get(getUsers);
 router.route('/signup').post(signupUser);
 router.route('/login').post(loginUser);
-router.route('/:id', validateToken).get(getThisUser)
+router.route('/', validateToken).get(getLoginUser)
                     .put(updateUser)
                     .delete(deleteUser);
 
