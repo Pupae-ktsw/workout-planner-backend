@@ -8,17 +8,18 @@ const User = require('../models/user_model');
 // @desc    Get Users
 // @route   GET /Users
 // @access  Private
-const getUsers = asyncHandler(async (req, res) => {
-    const users = await User.find();
+// const getUsers = asyncHandler(async (req, res) => {
+//     const users = await User.find();
 
-    res.status(200).json(users);
-});
+//     res.status(200).json(users);
+// });
 
 // @desc    Get Specific Users
-// @route   GET /Users/:id
+// @route   GET /users
 // @access  Private
 const getLoginUser = asyncHandler(async (req, res) => {
-    res.status(200).json(req.user);
+    const thisUser = await User.findById(req.user.id);
+    res.status(200).json(thisUser);
 });
 
 // @desc    Login user
@@ -110,5 +111,5 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    getUsers, getLoginUser, loginUser, signupUser, updateUser, deleteUser
+    getLoginUser, loginUser, signupUser, updateUser, deleteUser
 }

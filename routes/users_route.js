@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const validateToken = require('../middleware/auth');
 const {
-    getUsers,
     getLoginUser,
     loginUser,
     signupUser,
@@ -13,8 +12,9 @@ const {
 // router.route('/').get(getUsers);
 router.route('/signup').post(signupUser);
 router.route('/login').post(loginUser);
-router.route('/', validateToken).get(getLoginUser)
-                    .put(updateUser)
-                    .delete(deleteUser);
+router.get('/', validateToken, getLoginUser);
+                    // .get(getLoginUser)
+                    // .put(updateUser)
+                    // .delete(deleteUser);
 
 module.exports = router;
