@@ -18,7 +18,8 @@ const getPrograms = asyncHandler(async (req, res) => {
 // @route   GET /programs/:id
 // @access  Private
 const getThisProgram = asyncHandler(async (req, res) => {
-    res.status(200).json({ message: `This is program id ${req.params.id}`});
+    const thisProgram = await Program.findById(req.params.id);
+    res.status(200).json(thisProgram);
 });
 
 // @desc    Create Program
