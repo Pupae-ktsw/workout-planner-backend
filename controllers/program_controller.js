@@ -9,8 +9,7 @@ const CalendarEvents = require('../models/calendarEvent_model');
 // @route   GET /programs
 // @access  Private
 const getPrograms = asyncHandler(async (req, res) => {
-    const programs = await Program.find();
-
+    const programs = await Program.find({user_id: req.user._id});
     res.status(200).json(programs);
 });
 
@@ -101,7 +100,7 @@ const createProgram = asyncHandler(async (req, res) => {
         thumbnail: thumbnail,
         latestDay: 1,
         // day_id: body.day_id,
-        user_id: req.user.id
+        user_id: req.user._id
     });
     if(totalDays == dates.length){
         var dayOfProgram = [];

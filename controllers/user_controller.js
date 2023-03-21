@@ -18,8 +18,8 @@ const User = require('../models/user_model');
 // @route   GET /users
 // @access  Private
 const getLoginUser = asyncHandler(async (req, res) => {
-    const thisUser = await User.findById(req.user.id);
-    res.status(200).json(thisUser);
+    // const thisUser = await User.findById(req.user.id);
+    res.status(200).json(req.user);
 });
 
 // @desc    Login user
@@ -47,7 +47,7 @@ const loginUser = asyncHandler(async (req, res) => {
             user: {
                 name: user.name,
                 email: user.email,
-                id: user.id
+                _id: user.id
             },
         },
         process.env.ACCESS_TOKEN_SECRET,

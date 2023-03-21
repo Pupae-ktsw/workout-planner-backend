@@ -13,6 +13,7 @@ const {
 router.route('/signup').post(signupUser);
 router.route('/login').post(loginUser);
 router.get('/', validateToken, getLoginUser);
+router.put('/', validateToken, updateUser);
                     // .get(getLoginUser)
                     // .put(updateUser)
                     // .delete(deleteUser);
