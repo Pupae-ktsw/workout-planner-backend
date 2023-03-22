@@ -83,15 +83,17 @@ const signupUser = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update Users
-// @route   PUT /Users/:id
+// @route   PUT /users
 // @access  Private
 const updateUser = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.user._id);
     if(!user) {
         res.status(400);
         throw new Error('User not found');
     }
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
+    console.log(`req body user: ${JSON.stringify(req.body)}`);
+
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
         new: true,
     })
     res.status(200).json(updatedUser);

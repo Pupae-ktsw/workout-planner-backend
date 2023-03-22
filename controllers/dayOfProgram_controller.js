@@ -3,20 +3,20 @@ const asyncHandler = require('express-async-handler');
 
 const DayOfProgram = require('../models/dayOfProgram_model');
 
-// @desc    Get DayOfPrograms
-// @route   GET /DayOfPrograms
+// @desc    Get All DayOfProgram of each Program
+// @route   GET /programs/:programId/days
 // @access  Private
-const getDayOfPrograms = asyncHandler(async (req, res) => {
-    const dayOfPrograms = await DayOfProgram.find();
-
-    res.status(200).json(dayOfPrograms);
+const getDaysOfProgram = asyncHandler(async (req, res) => {
+    const dayOfProgram = await DayOfProgram.find({program_id: req.params.programId});
+    res.status(200).json(dayOfProgram);
 });
 
 // @desc    Get Specific DayOfPrograms
-// @route   GET /DayOfPrograms/:id
+// @route   GET /programs/:programId/days/:id
 // @access  Private
 const getThisDayOfProgram = asyncHandler(async (req, res) => {
-    res.status(200).json({ message: `This is dayOfProgram id ${req.params.id}`});
+    const thisDayOfProgram = await DayOfProgram.findById(req.params.id);
+    res.status(200).json(thisDayOfProgram);
 });
 
 // @desc    Create DayOfProgram
@@ -69,5 +69,5 @@ const deleteDayOfProgram = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    getDayOfPrograms, getThisDayOfProgram, createDayOfProgram, updateDayOfProgram, deleteDayOfProgram
+    getDaysOfProgram, getThisDayOfProgram, createDayOfProgram, updateDayOfProgram, deleteDayOfProgram
 }

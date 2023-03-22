@@ -17,13 +17,14 @@ const programSchema = mongoose.Schema({
         default: 'Challenging',
         enum: ['Challenging', 'Completed']
     },
-    startEndDate: [{startDate: Date, endDate: Date}],
-    // {
-    //     type: Map,
-    //     of: {
-    //         value: String
-    //     }
-    // },
+    startEndDate: 
+    // [{startDate: Date, endDate: Date}],
+    {
+        type: Map,
+        of: {
+            value: Date
+        }
+    },
     color: {
         type: String,
         required: true

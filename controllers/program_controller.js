@@ -5,7 +5,7 @@ const Program = require('../models/program_model');
 const DayOfProgram = require('../models/dayOfProgram_model');
 const CalendarEvents = require('../models/calendarEvent_model');
 
-// @desc    Get Programs
+// @desc    Get All programs of each user
 // @route   GET /programs
 // @access  Private
 const getPrograms = asyncHandler(async (req, res) => {
@@ -13,7 +13,7 @@ const getPrograms = asyncHandler(async (req, res) => {
     res.status(200).json(programs);
 });
 
-// @desc    Get Specific Programs
+// @desc    Get Specific Programs of each user
 // @route   GET /programs/:id
 // @access  Private
 const getThisProgram = asyncHandler(async (req, res) => {
@@ -87,7 +87,10 @@ const createProgram = asyncHandler(async (req, res) => {
         programName: programName,
         // playlistURL: createPlaylist(),
         programStatus: 'Challenging',
-        startEndDate: [{startDate: startDate}],
+        startEndDate: [{startDate: startDate, endDate: null}],
+        startEndDate: {
+            
+        },
         color: color,
         workoutTime: workoutTime,
         isReminder: isReminder,

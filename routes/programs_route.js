@@ -9,11 +9,16 @@ const {
     deleteProgram
 } = require('../controllers/program_controller');
 
+const {
+    getDaysOfProgram
+} = require('../controllers/dayOfProgram_controller');
+
 router.use(validateToken);
 router.route('/').get(getPrograms).post(createProgram);
 router.route('/:id').get(getThisProgram)
                     .put(updateProgram)
                     .delete(deleteProgram);
+router.route('/:programId/days').get(getDaysOfProgram);
 
 // router.route('/:id/').get();
 
