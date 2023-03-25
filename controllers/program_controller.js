@@ -25,17 +25,20 @@ const getThisProgram = asyncHandler(async (req, res) => {
 // @route   POST /programs
 // @access  Private
 const createProgram = asyncHandler(async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     const {programName, color, workoutTime,
         isReminder, repeatType, thumbnail} = req.body;
     const daysProgram = req.body.dayOfProgram;
     const totalDays = daysProgram.length;
     const startDate = new Date(Date.now());
+
+    startDate.setHours(0,0,0,0);
    
-    startDate.setHours(workoutTime.split(':')[0]);
-    startDate.setMinutes(workoutTime.split(':')[1]);
-    startDate.setSeconds(0);
-    startDate.setMilliseconds(0);
+    // Use in Notification
+    // startDate.setHours(workoutTime.split(':')[0]);
+    // startDate.setMinutes(workoutTime.split(':')[1]);
+    // startDate.setSeconds(0);
+    // startDate.setMilliseconds(0);
 
     console.log(`startDate: ${startDate}`);
     // TO DO: validation fields and warning to program req.body.<fieldNameJSON>
@@ -69,7 +72,8 @@ const createProgram = asyncHandler(async (req, res) => {
         
             // Add the number of days calculated to the start date to get the date of the first occurrence of the selected day-of-week
             let firstDate = startDate.addDays(delta);
-            let days = totalDays % repeatWeekly.length == 0? totalDays/repeatWeekly.length: totalDays%repeatWeekly.length;
+            let days = totalDays % repeatWeekly.length == 0? 
+                totalDays/repeatWeekly.length: totalDays%repeatWeekly.length;
             // Generate the dates of all subsequent occurrences of the selected day-of-week until the total number of days is reached
             for (let i = 0; i < days; i++) {
                 dates.push(firstDate.addDays(i*7));
@@ -79,10 +83,20 @@ const createProgram = asyncHandler(async (req, res) => {
                 }
             }
         }
-        dates.sort((a, b) => a - b);     
+        dates.sort((a, b) => a - b);
+        if(dates.length > totalDays){
+            let gap = dates.length - totalDays;
+            for(let i=0; i<gap; i++){
+                dates.pop();
+            }
+        }
+        if(dates.length != totalDays) {
+            res.status(500);
+            throw new Error('Wrong Calculated dates');
+        }
     }
-    console.log(`This is dates: ${dates}`);
 
+    // create Program    
     const program = await Program.create({
         programName: programName,
         // playlistURL: createPlaylist(),
@@ -99,21 +113,28 @@ const createProgram = asyncHandler(async (req, res) => {
         totalDays: totalDays,
         thumbnail: thumbnail,
         latestDay: 1,
-        // day_id: body.day_id,
+        // day_id: body.day_id,0
         user_id: req.user._id
     });
+
+    // create DayOfProgram
     if(totalDays == dates.length){
         var dayOfProgram = [];
+        var thumbnailCover = '';
         daysProgram.forEach(async (item, index, arr) => {
             let workouts = item.workouts;
-            let workoutArr = [];
-            workouts.forEach((workout) => {
+            console.log(`item wo: ${item.workouts}`);
+            const workoutArr = [];
+            workouts.forEach((workout, ind) => {
                 workoutArr.push({youtubeVid: {
                     url: workout.youtubeVid.url,
                     thumbnail: workout.youtubeVid.thumbnail,
                     title: workout.youtubeVid.title,
                     channel: workout.youtubeVid.channel,
                     duration: workout.youtubeVid.duration}});
+                if (index === 0 && ind === 0) {
+                    thumbnailCover = workoutArr[ind].youtubeVid.thumbnail;
+                }
             });
             let dayPg = await DayOfProgram.create({
                 program_id: program._id,
@@ -123,6 +144,8 @@ const createProgram = asyncHandler(async (req, res) => {
                 workouts: workoutArr
             });
             dayOfProgram.push(dayPg);
+
+            // create CalendarEvent
             let calendarEvent = await CalendarEvents.findOne(
                 { eventDate: dates[index] , user_id: req.user._id });
             if (calendarEvent) {
@@ -138,8 +161,8 @@ const createProgram = asyncHandler(async (req, res) => {
                 });
             }
         });
-
-
+        program.thumbnail = thumbnailCover
+        program.save();
     }
     res.status(200).json(program);
 });
