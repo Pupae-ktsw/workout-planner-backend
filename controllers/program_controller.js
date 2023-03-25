@@ -87,10 +87,7 @@ const createProgram = asyncHandler(async (req, res) => {
         programName: programName,
         // playlistURL: createPlaylist(),
         programStatus: 'Challenging',
-        startEndDate: [{startDate: startDate, endDate: null}],
-        startEndDate: {
-            
-        },
+        startEndDate: [{startDate: startDate, endDate: startDate}],
         color: color,
         workoutTime: workoutTime,
         isReminder: isReminder,
@@ -117,7 +114,7 @@ const createProgram = asyncHandler(async (req, res) => {
                     title: workout.youtubeVid.title,
                     channel: workout.youtubeVid.channel,
                     duration: workout.youtubeVid.duration}});
-            })
+            });
             let dayPg = await DayOfProgram.create({
                 program_id: program._id,
                 numberOfDay: item.numberOfDay,
@@ -126,9 +123,23 @@ const createProgram = asyncHandler(async (req, res) => {
                 workouts: workoutArr
             });
             dayOfProgram.push(dayPg);
-            // let events = await CalendarEvents.updateOne(
-            //     {eventDate: dates[index]})
-        });    
+            let calendarEvent = await CalendarEvents.findOne(
+                { eventDate: dates[index] , user_id: req.user._id });
+            if (calendarEvent) {
+                if(calendarEvent.programs.indexOf(program._id) == -1) {
+                    calendarEvent.programs.push(program._id);
+                }
+                calendarEvent.save();
+            }else {
+                await CalendarEvents.create({
+                    eventDate: dates[index],
+                    user_id: req.user._id,
+                    programs: [program._id],
+                });
+            }
+        });
+
+
     }
     res.status(200).json(program);
 });
@@ -148,17 +159,17 @@ const updateProgram = asyncHandler(async (req, res) => {
     res.status(200).json(updatedProgram);
 });
 
-// @desc    Delete Programs
+// @desc    Delete Programs and
 // @route   DELETE /programs/:id
 // @access  Private
 const deleteProgram = asyncHandler(async (req, res) => {
-    const program = await Program.findById(req.params.id);
+    const program = await Program.findOneAndDelete(req.params.id);
     if(!program) {
         res.status(400);
         throw new Error('Program not found');
     }
-    const deletedProgram = await Program.findByIdAndRemove(req.params.id, req.body);
-    res.status(200).json({ message: `Delete program ${deletedProgram.name}`});
+    // const deletedProgram = await Program.findByIdAndRemove(req.params.id, req.body);
+    // res.status(200).json({ message: `Delete program ${deletedProgram.name}`});
 });
 
 Date.prototype.addDays = function (days) {

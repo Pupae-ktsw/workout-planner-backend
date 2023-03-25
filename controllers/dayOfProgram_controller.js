@@ -19,6 +19,21 @@ const getThisDayOfProgram = asyncHandler(async (req, res) => {
     res.status(200).json(thisDayOfProgram);
 });
 
+// @desc    Get Specific DayOfPrograms By DATE
+// @route   GET /days/:date
+// @access  Private
+const getDaysOfProgramByDate = asyncHandler(async (req, res) => {
+    const thisDayOfProgram = await DayOfProgram.find(
+        {dateCalendar: req.params.date, user_id: req.user._id});
+    if(thisDayOfProgram){
+        res.status(200).json(thisDayOfProgram);  
+    }else {
+        res.status(404);
+        throw new Error('No workouts Found');
+    }
+    
+});
+
 // @desc    Create DayOfProgram
 // @route   POST /DayOfPrograms
 // @access  Private
@@ -69,5 +84,5 @@ const deleteDayOfProgram = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    getDaysOfProgram, getThisDayOfProgram, createDayOfProgram, updateDayOfProgram, deleteDayOfProgram
+    getDaysOfProgram, getThisDayOfProgram, getDaysOfProgramByDate, createDayOfProgram, updateDayOfProgram, deleteDayOfProgram
 }

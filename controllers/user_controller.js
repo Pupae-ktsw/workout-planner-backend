@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const User = require('../models/user_model');
+const { json } = require('express');
 
 // @desc    Get Users
 // @route   GET /Users
@@ -55,7 +56,7 @@ const loginUser = asyncHandler(async (req, res) => {
     res.status(200).json({accessToken: accessToken, message: 'Login Success'});
 });
 
-// @desc    Signup User
+// @desc    Signup user
 // @route   POST /users/signup
 // @access  Public
 const signupUser = asyncHandler(async (req, res) => {
@@ -82,13 +83,13 @@ const signupUser = asyncHandler(async (req, res) => {
     res.status(201).json(user);
 });
 
-// @desc    Update Users
+// @desc    Update users email and name
 // @route   PUT /users
 // @access  Private
 const updateUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
     if(!user) {
-        res.status(400);
+        res.status(404);
         throw new Error('User not found');
     }
     console.log(`req body user: ${JSON.stringify(req.body)}`);
@@ -99,13 +100,37 @@ const updateUser = asyncHandler(async (req, res) => {
     res.status(200).json(updatedUser);
 });
 
+// @desc    Update Users password
+// @route   PUT /users/changePassword
+// @access  Private
+const updateUserPw = asyncHandler(async (req, res) => {
+    const {oldPassword, newPassword} = req.body;
+    const user = await User.findById(req.user._id);
+    if(!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+    if(!(bcrypt.compareSync(oldPassword, user.password))) {
+        res.status(400);
+        throw new Error('Incorrect old password');
+    }
+
+    console.log(`req body user: ${JSON.stringify(req.body)}`);
+    // const obj = JSON.parse(req.body);
+    
+    const salt = bcrypt.genSaltSync(10);
+    const hashPassword = newPassword? bcrypt.hashSync(newPassword, salt): null;
+    await User.findByIdAndUpdate(req.user._id, {password: hashPassword});
+    res.status(200).json('Change password successfully');
+});
+
 // @desc    Delete Users
 // @route   DELETE /Users/:id
 // @access  Private
 const deleteUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id);
     if(!user) {
-        res.status(400);
+        res.status(404);
         throw new Error('User not found');
     }
     const deletedUser = await User.findByIdAndRemove(req.params.id, req.body);
@@ -113,5 +138,5 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    getLoginUser, loginUser, signupUser, updateUser, deleteUser
+    getLoginUser, loginUser, signupUser, updateUser, updateUserPw, deleteUser
 }
