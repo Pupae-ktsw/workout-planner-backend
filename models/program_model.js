@@ -32,11 +32,13 @@ const programSchema = mongoose.Schema({
         default: false
     },
     remindBf: {
-        type: String,
-        enum: [0, 10, 30, 60, 120, 180]
+        type: Number,
+        default: 0,
+        enum: [0, 10, 30, 60]
     },
     remindAf: {
-        type: String,
+        type: Number,
+        default: 30,
         enum: [30, 45, 60, 90, 120, 180]
     },
     repeatType: {
