@@ -1,12 +1,15 @@
 const asyncHandler = require('express-async-handler');
 
 const CalendarEvents = require('../models/calendarEvent_model');
+const Program = require('../models/program_model');
 
 // @desc    Get all events of each user
 // @route   GET /calendarEvents
 // @access  Private
 const getCalendarEvents = asyncHandler(async (req, res) => {
-    const calendarEvents = await CalendarEvents.find({user_id: req.user._id});
+    const calendarEvents = await CalendarEvents.find({user_id: req.user._id})
+                            .populate('programs')
+                            .populate('dayProgram');
     if (calendarEvents){
         res.status(200).json(calendarEvents);  
     }else {

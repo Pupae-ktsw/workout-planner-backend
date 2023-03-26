@@ -27,10 +27,19 @@ const getThisProgram = asyncHandler(async (req, res) => {
 const createProgram = asyncHandler(async (req, res) => {
     // console.log(req.body);
     const {programName, color, workoutTime,
-        isReminder, repeatType, thumbnail} = req.body;
+        isReminder, repeatType, thumbnail,} = req.body;
     const daysProgram = req.body.dayOfProgram;
     const totalDays = daysProgram.length;
-    const startDate = new Date(Date.now());
+    var startDate = null;
+
+    
+    if (req.body.startEndDate){
+        startDate = new Date(req.body.startEndDate[0].startDate); 
+        console.log(`startDate body: ${req.body.startEndDate[0]}`);
+    }else {
+        startDate = new Date(Date.now());
+    }
+    
 
     startDate.setHours(0,0,0,0);
    
@@ -41,7 +50,6 @@ const createProgram = asyncHandler(async (req, res) => {
     // startDate.setMilliseconds(0);
 
     console.log(`startDate: ${startDate}`);
-    // TO DO: validation fields and warning to program req.body.<fieldNameJSON>
     if(!req.body) {
         res.status(400);
         throw new Error('No Request body');
@@ -50,6 +58,10 @@ const createProgram = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error('Miss day of program');
     }
+    if(req.body.repeatWeekly.length > totalDays ) {
+        throw new Error(`Choose only ${totalDays} day of week`);
+    }
+
     var dates = [];
     if(repeatType == 'Daily'){
         let startDay = startDate;
@@ -152,12 +164,14 @@ const createProgram = asyncHandler(async (req, res) => {
                 if(calendarEvent.programs.indexOf(program._id) == -1) {
                     calendarEvent.programs.push(program._id);
                 }
+                calendarEvent.dayProgram.push(dayPg._id);
                 calendarEvent.save();
             }else {
                 await CalendarEvents.create({
                     eventDate: dates[index],
                     user_id: req.user._id,
                     programs: [program._id],
+                    dayProgram: [dayPg._id]
                 });
             }
         });

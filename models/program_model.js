@@ -19,12 +19,6 @@ const programSchema = mongoose.Schema({
     },
     startEndDate: 
         [{startDate: Date, endDate: Date}],
-    // {
-    //     type: Map,
-    //     of: {
-    //         value: Date
-    //     }
-    // },
     color: {
         type: String,
         required: true
@@ -38,10 +32,12 @@ const programSchema = mongoose.Schema({
         default: false
     },
     remindBf: {
-        type: String
+        type: String,
+        enum: [0, 10, 30, 60, 120, 180]
     },
     remindAf: {
-        type: String
+        type: String,
+        enum: [30, 45, 60, 90, 120, 180]
     },
     repeatType: {
         type: String,

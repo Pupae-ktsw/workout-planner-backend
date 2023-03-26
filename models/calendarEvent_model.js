@@ -18,6 +18,11 @@ const calendarEventSchema = mongoose.Schema({
         ref: 'Program',
         required: true
     }],
+    dayProgram: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'DayOfProgram',
+        required: true
+    }]
     // workouts: [{
     //     type: mongoose.Schema.Types.ObjectId,
     //     ref: 'DayOfProgram',
