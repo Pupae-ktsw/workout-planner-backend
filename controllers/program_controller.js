@@ -27,9 +27,9 @@ const getThisProgram = asyncHandler(async (req, res) => {
 const createProgram = asyncHandler(async (req, res) => {
     // console.log(req.body);
     const {programName, color, workoutTime,
-        isReminder, repeatType, thumbnail,} = req.body;
-    const daysProgram = req.body.dayOfProgram;
-    const totalDays = daysProgram.length;
+        isReminder, repeatType} = req.body;
+    // const daysProgram = req.body.dayOfProgram;
+    const totalDays = req.body.totalDays;
     var startDate = null;
 
     
@@ -53,7 +53,7 @@ const createProgram = asyncHandler(async (req, res) => {
     if(!req.body) {
         res.status(400);
         throw new Error('No Request body');
-    }
+    }/*
     if(!daysProgram){
         res.status(400);
         throw new Error('Miss day of program');
@@ -106,7 +106,7 @@ const createProgram = asyncHandler(async (req, res) => {
             res.status(500);
             throw new Error('Wrong Calculated dates');
         }
-    }
+    }*/
 
     // create Program    
     const program = await Program.create({
@@ -123,12 +123,11 @@ const createProgram = asyncHandler(async (req, res) => {
         repeatDaily: repeatType == 'Daily'? req.body.repeatDaily: null,
         repeatWeekly: repeatType == 'Weekly'? req.body.repeatWeekly: null,
         totalDays: totalDays,
-        thumbnail: thumbnail,
         latestDay: 1,
         // day_id: body.day_id,0
         user_id: req.user._id
     });
-
+    /*
     // create DayOfProgram
     if(totalDays == dates.length){
         var dayOfProgram = [];
@@ -177,7 +176,7 @@ const createProgram = asyncHandler(async (req, res) => {
         });
         program.thumbnail = thumbnailCover
         program.save();
-    }
+    }*/
     res.status(200).json(program);
 });
 
