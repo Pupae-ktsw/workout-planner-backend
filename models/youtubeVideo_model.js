@@ -1,14 +1,11 @@
 const mongoose = require('mongoose');
 
 const youtubeVidSchema = mongoose.Schema({
-    videoURL: {
-        type: String,
-        required: true
-    },
-    thumbnail: String,
-    name: String,
-    channel: String,
-    duration: Number
+    url: {type: String, require: true},
+    thumbnail: {type: String, require: true},
+    title: {type: String, require: true},
+    channel: {type: String, require: true},
+    duration: {type: Number, require: true}
 });
 
 module.exports = mongoose.model('YoutubeVideo', youtubeVidSchema);
