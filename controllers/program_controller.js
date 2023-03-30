@@ -149,47 +149,6 @@ const createProgram = asyncHandler(async (req, res) => {
     // create related model:
     // DayOfProgram, YoutubeVideo, CalendarEvent
     DayOfProgramController.createBulkDayOfProgram(daysProgram, dates, program._id, req.user._id);
-
-    
-
-
-
-        // daysProgram.forEach(async (item, index, arr) => {
-        //     var ytVid = null;
-        //     var ytVidFind = await YoutubeVideo.findOne({url: item.youtubeVid.url});
-        //     if (ytVidFind) {
-        //         ytVid = ytVidFind;
-        //     }else {
-        //         ytVid = await YoutubeVideo.create({
-        //             url: item.youtubeVid.url,
-        //             thumbnail: item.youtubeVid.thumbnail,
-        //             title: item.youtubeVid.title,
-        //             channel: item.youtubeVid.channel,
-        //             duration: item.youtubeVid.duration
-        //         });
-        //     }
-        //     let dayPg = await DayOfProgram.create({
-        //         program_id: program._id,
-        //         numberOfDay: item.numberOfDay,
-        //         dateCalendar: dates[index],
-        //         youtubeVid: ytVid._id
-        //     });
-        //     dayOfProgram.push(dayPg);
-
-        //     // create CalendarEvent
-        //     let calendarEvent = await CalendarEvents.findOne(
-        //         { eventDate: dates[index] , user_id: req.user._id });
-        //     if (calendarEvent) {
-        //         calendarEvent.dayProgram.push(dayPg._id);
-        //         calendarEvent.save();
-        //     }else {
-        //         await CalendarEvents.create({
-        //             eventDate: dates[index],
-        //             user_id: req.user._id,
-        //             dayProgram: [dayPg._id]
-        //         });
-        //     }
-        // });
     res.status(200).json(program);
 });
 
