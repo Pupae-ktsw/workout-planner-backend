@@ -2,8 +2,7 @@
 const asyncHandler = require('express-async-handler');
 
 const Program = require('../models/program_model');
-const DayOfProgram = require('../models/dayOfProgram_model');
-const CalendarEvents = require('../models/calendarEvent_model');
+const DayOfProgramController = require('./dayOfProgram_controller');
 
 // @desc    Get All programs of each user
 // @route   GET /programs
@@ -71,20 +70,36 @@ const createProgram = asyncHandler(async (req, res) => {
 
     }else if (repeatType == 'Weekly'){
         let repeatWeekly = req.body.repeatWeekly;
-        for (dayOfWeek of repeatWeekly) {
+        console.log(`totalDays: ${totalDays}, repeatWeekly: ${repeatWeekly}`);
+        const startDay = startDate.getDay();
+        for (let index=0; index<repeatWeekly.length; index++) {
+            dayOfWeek = repeatWeekly[index];
+            console.log(`dayofweek: ${dayOfWeek}`);
             // Determine the day-of-week of the start date
-            let startDay = startDate.getDay();
+            // let startDay = startDate.getDay();
+            // console.log(`startDay: ${startDay}`);
         
             // Calculate the number of days between the start date and the next occurrence of the selected day-of-week
             let delta = (dayOfWeek - startDay + 7) % 7;
             if (delta === 0) {
                 delta = 7;
             }
+            console.log(`delta: ${delta}`);
         
             // Add the number of days calculated to the start date to get the date of the first occurrence of the selected day-of-week
             let firstDate = startDate.addDays(delta);
+            // console.log(`firstDate: ${firstDate}`);
+            // let days = Math.floor(totalDays/repeatWeekly.length);
+            // let mod = totalDays % repeatWeekly.length;
+            // if (mod !== 0) {
+            //     console.log(`[1]index: ${index}, mod: ${mod}, days: ${days}`);
+            //     days = index < mod ? days+1: days;
+            //     console.log(`[2]index: ${index}, mod: ${mod}, days: ${days}`);
+
+            // }
             let days = totalDays % repeatWeekly.length == 0? 
                 totalDays/repeatWeekly.length: totalDays%repeatWeekly.length;
+            console.log(`days: ${days}`);
             // Generate the dates of all subsequent occurrences of the selected day-of-week until the total number of days is reached
             for (let i = 0; i < days; i++) {
                 dates.push(firstDate.addDays(i*7));
@@ -95,13 +110,17 @@ const createProgram = asyncHandler(async (req, res) => {
             }
         }
         dates.sort((a, b) => a - b);
+        console.log(`dates1: ${dates}`);
+        console.log(`totalDays: ${totalDays}, dates: ${dates.length}`);
         if(dates.length > totalDays){
             let gap = dates.length - totalDays;
-            for(let i=0; i<gap; i++){
+            for(let j=0; j<gap; j++){
                 dates.pop();
             }
+            console.log(`dates2: ${dates}`);
         }
         if(dates.length != totalDays) {
+            console.log(`dates3: ${dates}`);
             res.status(500);
             throw new Error('Wrong Calculated dates');
         }
@@ -110,7 +129,6 @@ const createProgram = asyncHandler(async (req, res) => {
     // create Program    
     const program = await Program.create({
         programName: programName,
-        // playlistURL: createPlaylist(),
         programStatus: 'Challenging',
         startEndDate: [{startDate: startDate, endDate: startDate}],
         color: color,
@@ -122,60 +140,56 @@ const createProgram = asyncHandler(async (req, res) => {
         repeatDaily: repeatType == 'Daily'? req.body.repeatDaily: null,
         repeatWeekly: repeatType == 'Weekly'? req.body.repeatWeekly: null,
         totalDays: totalDays,
+        thumbnail: daysProgram[0].youtubeVid.thumbnail,
         latestDay: 1,
         // day_id: body.day_id,0
         user_id: req.user._id
     });
     
-    // create DayOfProgram
-    if(totalDays == dates.length){
-        var dayOfProgram = [];
-        var thumbnailCover = '';
-        daysProgram.forEach(async (item, index, arr) => {
-            let workouts = item.workouts;
-            console.log(`item wo: ${item.workouts}`);
-            const workoutArr = [];
-            workouts.forEach((workout, ind) => {
-                workoutArr.push({youtubeVid: {
-                    url: workout.youtubeVid.url,
-                    thumbnail: workout.youtubeVid.thumbnail,
-                    title: workout.youtubeVid.title,
-                    channel: workout.youtubeVid.channel,
-                    duration: workout.youtubeVid.duration}});
-                if (index === 0 && ind === 0) {
-                    thumbnailCover = workoutArr[ind].youtubeVid.thumbnail;
-                }
-            });
-            let dayPg = await DayOfProgram.create({
-                program_id: program._id,
-                numberOfDay: item.numberOfDay,
-                totalDuration: calTotalDuration(workouts),
-                dateCalendar: dates[index],
-                workouts: workoutArr
-            });
-            dayOfProgram.push(dayPg);
+    // create related model:
+    // DayOfProgram, YoutubeVideo, CalendarEvent
+    DayOfProgramController.createBulkDayOfProgram(daysProgram, dates, program._id, req.user._id);
 
-            // create CalendarEvent
-            let calendarEvent = await CalendarEvents.findOne(
-                { eventDate: dates[index] , user_id: req.user._id });
-            if (calendarEvent) {
-                if(calendarEvent.programs.indexOf(program._id) == -1) {
-                    calendarEvent.programs.push(program._id);
-                }
-                calendarEvent.dayProgram.push(dayPg._id);
-                calendarEvent.save();
-            }else {
-                await CalendarEvents.create({
-                    eventDate: dates[index],
-                    user_id: req.user._id,
-                    programs: [program._id],
-                    dayProgram: [dayPg._id]
-                });
-            }
-        });
-        program.thumbnail = thumbnailCover
-        program.save();
-    }
+    
+
+
+
+        // daysProgram.forEach(async (item, index, arr) => {
+        //     var ytVid = null;
+        //     var ytVidFind = await YoutubeVideo.findOne({url: item.youtubeVid.url});
+        //     if (ytVidFind) {
+        //         ytVid = ytVidFind;
+        //     }else {
+        //         ytVid = await YoutubeVideo.create({
+        //             url: item.youtubeVid.url,
+        //             thumbnail: item.youtubeVid.thumbnail,
+        //             title: item.youtubeVid.title,
+        //             channel: item.youtubeVid.channel,
+        //             duration: item.youtubeVid.duration
+        //         });
+        //     }
+        //     let dayPg = await DayOfProgram.create({
+        //         program_id: program._id,
+        //         numberOfDay: item.numberOfDay,
+        //         dateCalendar: dates[index],
+        //         youtubeVid: ytVid._id
+        //     });
+        //     dayOfProgram.push(dayPg);
+
+        //     // create CalendarEvent
+        //     let calendarEvent = await CalendarEvents.findOne(
+        //         { eventDate: dates[index] , user_id: req.user._id });
+        //     if (calendarEvent) {
+        //         calendarEvent.dayProgram.push(dayPg._id);
+        //         calendarEvent.save();
+        //     }else {
+        //         await CalendarEvents.create({
+        //             eventDate: dates[index],
+        //             user_id: req.user._id,
+        //             dayProgram: [dayPg._id]
+        //         });
+        //     }
+        // });
     res.status(200).json(program);
 });
 

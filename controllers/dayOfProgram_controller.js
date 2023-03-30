@@ -2,12 +2,14 @@
 const asyncHandler = require('express-async-handler');
 
 const DayOfProgram = require('../models/dayOfProgram_model');
+const YoutubeVideo = require('../models/youtubeVideo_model');
+const CalendarEvent = require('../models/calendarEvent_model');
 
 // @desc    Get All DayOfProgram of each Program
 // @route   GET /programs/:programId/days
 // @access  Private
 const getDaysOfProgram = asyncHandler(async (req, res) => {
-    const dayOfProgram = await DayOfProgram.find({program_id: req.params.programId});
+    const dayOfProgram = await DayOfProgram.find({program_id: req.params.programId}).populate('youtubeVid');
     res.status(200).json(dayOfProgram);
 });
 
@@ -33,6 +35,7 @@ const getDaysOfProgramByDate = asyncHandler(async (req, res) => {
     }
     
 });
+
 
 // @desc    Create DayOfProgram
 // @route   POST /DayOfPrograms
@@ -83,6 +86,78 @@ const deleteDayOfProgram = asyncHandler(async (req, res) => {
     res.status(200).json({ message: `Delete dayOfProgram ${deletedDayOfProgram.name}`});
 });
 
+
+const createBulkDayOfProgram = async (daysProgram, dates, programId, userId) => {
+    var newDayOfPrograms = [];
+    var newYoutubeVids = []; 
+    var newCalendarEvents = [];
+    const youtubeDB = new Map((await YoutubeVideo.find())
+                    .map(obj => {
+                        return [obj.url, obj];
+                    }));
+    // console.log(`youtubeDB: ${youtubeDB}`);
+
+    try{
+        for(var index=0; index<daysProgram.length; index++){
+            let item = daysProgram[index];        
+        // await daysProgram.forEach(async (item, index) => {
+            // create non exist YoutubeVideo
+            let ytVid = youtubeDB.get(item.youtubeVid.url);
+            // ytVid ? console.log(item.youtubeVid.title) : null;
+            if(!ytVid){
+                ytVid = YoutubeVideo({
+                    url: item.youtubeVid.url,
+                    thumbnail: item.youtubeVid.thumbnail,
+                    title: item.youtubeVid.title,
+                    channel: item.youtubeVid.channel,
+                    duration: item.youtubeVid.duration
+                });
+                youtubeDB.set(ytVid.url, ytVid);
+                newYoutubeVids.push(ytVid);
+            }
+            // create DayOfProgram
+            let dayPg = DayOfProgram({
+                program_id: programId,
+                numberOfDay: item.numberOfDay,
+                dateCalendar: dates[index],
+                youtubeVid: ytVid._id
+            });
+            newDayOfPrograms.push(dayPg);
+
+            // create CalendarEvent
+            let calendarEvent = await CalendarEvent.find(
+                {eventDate: dates[index] , user_id: userId}).limit(1);
+
+            if (calendarEvent[0]) {
+                calendarEvent[0].dayProgram.push(dayPg._id);
+                // calendarEvent[0].save();
+            }else {
+                
+                let event = CalendarEvent({
+                    eventDate: dates[index],
+                    user_id: userId,
+                    dayProgram: [dayPg._id]
+                });
+                // console.log(`new event: ${event}`);
+                newCalendarEvents.push(event);
+                // console.log(`newCalendar: ${newCalendarEvents}`);
+            }
+        }
+        // );
+
+        console.log(`newCalendarAfter: ${newCalendarEvents}`);
+        // console.log(`newDayOfProgram: ${newDayOfPrograms}`);
+
+        YoutubeVideo.insertMany(newYoutubeVids);
+        DayOfProgram.insertMany(newDayOfPrograms, {ordered: true});
+        CalendarEvent.insertMany(newCalendarEvents, {ordered: true});
+    }catch(err){
+        console.log(err);
+    }
+
+
+}
+
 module.exports = {
-    getDaysOfProgram, getThisDayOfProgram, getDaysOfProgramByDate, createDayOfProgram, updateDayOfProgram, deleteDayOfProgram
+    createBulkDayOfProgram, getDaysOfProgram, getThisDayOfProgram, getDaysOfProgramByDate, createDayOfProgram, updateDayOfProgram, deleteDayOfProgram
 }

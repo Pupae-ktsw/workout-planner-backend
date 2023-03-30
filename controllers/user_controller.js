@@ -19,8 +19,8 @@ const { json } = require('express');
 // @route   GET /users
 // @access  Private
 const getLoginUser = asyncHandler(async (req, res) => {
-    // const thisUser = await User.findById(req.user.id);
-    res.status(200).json(req.user);
+    const thisUser = await User.findById(req.user._id);
+    res.status(200).json(thisUser);
 });
 
 // @desc    Login user

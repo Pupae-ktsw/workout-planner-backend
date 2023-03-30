@@ -42,7 +42,7 @@ const programSchema = mongoose.Schema({
     },
     repeatDaily: Number,
     repeatWeekly: [Number],
-    totalDays: Number,
+    totalDays: {type: Number, require: true},
     thumbnail: {type: String, require: true},
     latestDay: {type: Number, require: true},
     user_id: {

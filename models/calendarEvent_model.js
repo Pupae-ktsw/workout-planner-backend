@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 
 const calendarEventSchema = mongoose.Schema({
     eventDate: { type: Date, required: true},
-    // numberOfWorkout: { type: Number, required: true},
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -15,4 +14,4 @@ const calendarEventSchema = mongoose.Schema({
     }]
 });
 
-module.exports = mongoose.model('CalendarEvents', calendarEventSchema);
+module.exports = mongoose.model('CalendarEvent', calendarEventSchema);
