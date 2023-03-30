@@ -9,7 +9,8 @@ const CalendarEvent = require('../models/calendarEvent_model');
 // @route   GET /programs/:programId/days
 // @access  Private
 const getDaysOfProgram = asyncHandler(async (req, res) => {
-    const dayOfProgram = await DayOfProgram.find({program_id: req.params.programId}).populate('youtubeVid');
+    const dayOfProgram = await DayOfProgram.find({
+        program_id: req.params.programId}).populate('youtubeVid').populate('program_id');
     res.status(200).json(dayOfProgram);
 });
 

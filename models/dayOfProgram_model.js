@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const dayOfProgramSchema = mongoose.Schema({
-    program_id: {type: mongoose.Schema.Types.ObjectId, require: true},
+    program_id: {type: mongoose.Schema.Types.ObjectId, ref: 'Program',require: true},
     numberOfDay: {type: Number, require: true},
     dateCalendar: {type: Date, require: true},
     workoutStatus: {
