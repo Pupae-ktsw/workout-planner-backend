@@ -128,7 +128,7 @@ const createBulkDayOfProgram = async (daysProgram, dates, programId, userId) => 
 
             if (calendarEvent[0]) {
                 calendarEvent[0].dayProgram.push(dayPg._id);
-                // calendarEvent[0].save();
+                calendarEvent[0].save();
             }else {
                 
                 let event = CalendarEvent({
