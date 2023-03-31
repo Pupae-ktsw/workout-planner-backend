@@ -101,10 +101,7 @@ const createBulkDayOfProgram = async (daysProgram, dates, programId, userId) => 
     try{
         for(var index=0; index<daysProgram.length; index++){
             let item = daysProgram[index];        
-        // await daysProgram.forEach(async (item, index) => {
-            // create non exist YoutubeVideo
             let ytVid = youtubeDB.get(item.youtubeVid.url);
-            // ytVid ? console.log(item.youtubeVid.title) : null;
             if(!ytVid){
                 ytVid = YoutubeVideo({
                     url: item.youtubeVid.url,
@@ -139,15 +136,9 @@ const createBulkDayOfProgram = async (daysProgram, dates, programId, userId) => 
                     user_id: userId,
                     dayProgram: [dayPg._id]
                 });
-                // console.log(`new event: ${event}`);
                 newCalendarEvents.push(event);
-                // console.log(`newCalendar: ${newCalendarEvents}`);
             }
         }
-        // );
-
-        console.log(`newCalendarAfter: ${newCalendarEvents}`);
-        // console.log(`newDayOfProgram: ${newDayOfPrograms}`);
 
         YoutubeVideo.insertMany(newYoutubeVids);
         DayOfProgram.insertMany(newDayOfPrograms, {ordered: true});

@@ -9,10 +9,14 @@ const getCalendarEvents = asyncHandler(async (req, res) => {
     const calendarEvents = await CalendarEvent.find({user_id: req.user._id})
                             .populate({
                                 path: 'dayProgram',
-                                populate: {
+                                populate: [{
                                     path: 'program_id',
                                     model: 'Program'
-                                }
+                                }, 
+                                {
+                                    path: 'youtubeVid',
+                                    model: 'YoutubeVideo'
+                                }]
                             })
                             // .populate('dayProgram');
     if (calendarEvents){
