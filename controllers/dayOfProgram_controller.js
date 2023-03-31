@@ -146,10 +146,28 @@ const createBulkDayOfProgram = async (daysProgram, dates, programId, userId) => 
     }catch(err){
         console.log(err);
     }
-
-
 }
 
+// @desc    PUT DayOfPrograms
+// @route   PUT /dayOfPrograms/:id
+// @access  Private
+const updateWorkoutStatus = asyncHandler(async (req, res) => {
+    const dayOfProgram = await DayOfProgram.findById(req.params.id);
+    if(req.body.workoutStatus === 'Done'){
+        dayOfProgram.workoutStatus = 'Done';
+        dayOfProgram.save();
+        Program.findByIdAndUpdate(dayOfProgram.program_id, {latestDay: dayOfProgram.numberOfDay+1});
+    }else if(req.body.workoutStatus === 'Skip'){
+        // dayOfProgram.dateCalendar
+    }
+
+    if(!dayOfProgram) {
+        res.status(400);
+        throw new Error('DayOfProgram not found');
+    }
+
+});
+
 module.exports = {
-    createBulkDayOfProgram, getDaysOfProgram, getThisDayOfProgram, getDaysOfProgramByDate, createDayOfProgram, updateDayOfProgram, deleteDayOfProgram
+    createBulkDayOfProgram, updateWorkoutStatus, getDaysOfProgram, getThisDayOfProgram, getDaysOfProgramByDate, createDayOfProgram, updateDayOfProgram, deleteDayOfProgram
 }

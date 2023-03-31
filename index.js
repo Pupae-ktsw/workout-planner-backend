@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-
+const cors = require('cors');
 const {errorHandler} = require('./middleware/error_middleware');
 const connectDB = require('./config/db');
 const bodyParser = require('body-parser');
@@ -10,7 +10,7 @@ connectDB();
 
 const app = express();
 
-
+app.use(cors);
 app.use(express.json());
 app.use(bodyParser.json());
 
@@ -27,6 +27,7 @@ app.use('/search', require('./routes/youtube_route'));
 app.use('/users', require('./routes/users_route'));
 app.use('/programs', require('./routes/programs_route'));
 app.use('/calendarEvents', require('./routes/calendarEvents_route'));
+app.use('/dayOfPrograms', require('./routes/dayOfProgram_route'));
 app.use(errorHandler);
 
 app.listen(port, () => {
