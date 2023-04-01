@@ -2,6 +2,7 @@
 const asyncHandler = require('express-async-handler');
 
 const Program = require('../models/program_model');
+const { generateDates } = require('../services/services');
 const DayOfProgramController = require('./dayOfProgram_controller');
 
 // @desc    Get All programs of each user
@@ -60,71 +61,78 @@ const createProgram = asyncHandler(async (req, res) => {
         throw new Error(`Choose only ${totalDays} day of week`);
     }
 
-    var dates = [];
-    if(repeatType == 'Daily'){
-        let startDay = startDate;
-        for(let i=0; i<totalDays; i++){
-            dates.push(startDay);
-            startDay = startDay.addDays(req.body.repeatDaily);
-        }
 
-    }else if (repeatType == 'Weekly'){
-        let repeatWeekly = req.body.repeatWeekly;
-        console.log(`totalDays: ${totalDays}, repeatWeekly: ${repeatWeekly}`);
-        const startDay = startDate.getDay();
-        for (let index=0; index<repeatWeekly.length; index++) {
-            dayOfWeek = repeatWeekly[index];
-            console.log(`dayofweek: ${dayOfWeek}`);
-            // Determine the day-of-week of the start date
-            // let startDay = startDate.getDay();
-            // console.log(`startDay: ${startDay}`);
-        
-            // Calculate the number of days between the start date and the next occurrence of the selected day-of-week
-            let delta = (dayOfWeek - startDay + 7) % 7;
-            if (delta === 0) {
-                delta = 7;
-            }
-            console.log(`delta: ${delta}`);
-        
-            // Add the number of days calculated to the start date to get the date of the first occurrence of the selected day-of-week
-            let firstDate = startDate.addDays(delta);
-            // console.log(`firstDate: ${firstDate}`);
-            // let days = Math.floor(totalDays/repeatWeekly.length);
-            // let mod = totalDays % repeatWeekly.length;
-            // if (mod !== 0) {
-            //     console.log(`[1]index: ${index}, mod: ${mod}, days: ${days}`);
-            //     days = index < mod ? days+1: days;
-            //     console.log(`[2]index: ${index}, mod: ${mod}, days: ${days}`);
-
-            // }
-            let days = totalDays % repeatWeekly.length == 0? 
-                totalDays/repeatWeekly.length: totalDays%repeatWeekly.length;
-            console.log(`days: ${days}`);
-            // Generate the dates of all subsequent occurrences of the selected day-of-week until the total number of days is reached
-            for (let i = 0; i < days; i++) {
-                dates.push(firstDate.addDays(i*7));
-                if(startDay === dayOfWeek){
-                    i=1;
-                    dates.push(startDate);
-                }
-            }
-        }
-        dates.sort((a, b) => a - b);
-        console.log(`dates1: ${dates}`);
-        console.log(`totalDays: ${totalDays}, dates: ${dates.length}`);
-        if(dates.length > totalDays){
-            let gap = dates.length - totalDays;
-            for(let j=0; j<gap; j++){
-                dates.pop();
-            }
-            console.log(`dates2: ${dates}`);
-        }
-        if(dates.length != totalDays) {
-            console.log(`dates3: ${dates}`);
-            res.status(500);
-            throw new Error('Wrong Calculated dates');
-        }
+    const frequently = repeatType === 'Weekly' ? req.body.repeatWeekly: req.body.repeatDaily;
+    var dates = generateDates(startDate, frequently, totalDays);
+    if(dates.length != totalDays) {
+        console.log(`dates3: ${dates}`);
+        res.status(500);
+        throw new Error('Wrong Calculated dates');
     }
+    // if(repeatType == 'Daily'){
+    //     let startDay = startDate;
+    //     for(let i=0; i<totalDays; i++){
+    //         dates.push(startDay);
+    //         startDay = startDay.addDays(req.body.repeatDaily);
+    //     }
+
+    // }else if (repeatType == 'Weekly'){
+    //     let repeatWeekly = req.body.repeatWeekly;
+    //     console.log(`totalDays: ${totalDays}, repeatWeekly: ${repeatWeekly}`);
+    //     const startDay = startDate.getDay();
+    //     for (let index=0; index<repeatWeekly.length; index++) {
+    //         dayOfWeek = repeatWeekly[index];
+    //         console.log(`dayofweek: ${dayOfWeek}`);
+    //         // Determine the day-of-week of the start date
+    //         // let startDay = startDate.getDay();
+    //         // console.log(`startDay: ${startDay}`);
+        
+    //         // Calculate the number of days between the start date and the next occurrence of the selected day-of-week
+    //         let delta = (dayOfWeek - startDay + 7) % 7;
+    //         if (delta === 0) {
+    //             delta = 7;
+    //         }
+    //         console.log(`delta: ${delta}`);
+        
+    //         // Add the number of days calculated to the start date to get the date of the first occurrence of the selected day-of-week
+    //         let firstDate = startDate.addDays(delta);
+    //         // console.log(`firstDate: ${firstDate}`);
+    //         // let days = Math.floor(totalDays/repeatWeekly.length);
+    //         // let mod = totalDays % repeatWeekly.length;
+    //         // if (mod !== 0) {
+    //         //     console.log(`[1]index: ${index}, mod: ${mod}, days: ${days}`);
+    //         //     days = index < mod ? days+1: days;
+    //         //     console.log(`[2]index: ${index}, mod: ${mod}, days: ${days}`);
+
+    //         // }
+    //         let days = totalDays % repeatWeekly.length == 0? 
+    //             totalDays/repeatWeekly.length: totalDays%repeatWeekly.length;
+    //         console.log(`days: ${days}`);
+    //         // Generate the dates of all subsequent occurrences of the selected day-of-week until the total number of days is reached
+    //         for (let i = 0; i < days; i++) {
+    //             dates.push(firstDate.addDays(i*7));
+    //             if(startDay === dayOfWeek){
+    //                 i=1;
+    //                 dates.push(startDate);
+    //             }
+    //         }
+    //     }
+    //     dates.sort((a, b) => a - b);
+    //     console.log(`dates1: ${dates}`);
+    //     console.log(`totalDays: ${totalDays}, dates: ${dates.length}`);
+    //     if(dates.length > totalDays){
+    //         let gap = dates.length - totalDays;
+    //         for(let j=0; j<gap; j++){
+    //             dates.pop();
+    //         }
+    //         console.log(`dates2: ${dates}`);
+    //     }
+    //     if(dates.length != totalDays) {
+    //         console.log(`dates3: ${dates}`);
+    //         res.status(500);
+    //         throw new Error('Wrong Calculated dates');
+    //     }
+    // }
 
     // create Program    
     const program = await Program.create({
@@ -180,19 +188,19 @@ const deleteProgram = asyncHandler(async (req, res) => {
     // res.status(200).json({ message: `Delete program ${deletedProgram.name}`});
 });
 
-Date.prototype.addDays = function (days) {
-    let date = new Date(this.valueOf());
-    date.setDate(date.getDate() + days);
-    return date;
-}
+// Date.prototype.addDays = function (days) {
+//     let date = new Date(this.valueOf());
+//     date.setDate(date.getDate() + days);
+//     return date;
+// }
 
-function calTotalDuration(workouts) {
-    let totalDuration = 0;
-    workouts.forEach((item)=>{
-        totalDuration += item.youtubeVid.duration;
-    });
-    return totalDuration;
-}
+// function calTotalDuration(workouts) {
+//     let totalDuration = 0;
+//     workouts.forEach((item)=>{
+//         totalDuration += item.youtubeVid.duration;
+//     });
+//     return totalDuration;
+// }
 
 module.exports = {
     getPrograms, getThisProgram, createProgram, updateProgram, deleteProgram

@@ -1,6 +1,9 @@
 // for handling error without using try/catch
 const asyncHandler = require('express-async-handler');
 
+const Program = require('../models/program_model');
+const services = require('../services/services');
+const programController = require('./program_controller');
 const DayOfProgram = require('../models/dayOfProgram_model');
 const YoutubeVideo = require('../models/youtubeVideo_model');
 const CalendarEvent = require('../models/calendarEvent_model');
@@ -152,20 +155,107 @@ const createBulkDayOfProgram = async (daysProgram, dates, programId, userId) => 
 // @route   PUT /dayOfPrograms/:id
 // @access  Private
 const updateWorkoutStatus = asyncHandler(async (req, res) => {
-    const dayOfProgram = await DayOfProgram.findById(req.params.id);
-    if(req.body.workoutStatus === 'Done'){
-        dayOfProgram.workoutStatus = 'Done';
-        dayOfProgram.save();
-        Program.findByIdAndUpdate(dayOfProgram.program_id, {latestDay: dayOfProgram.numberOfDay+1});
-    }else if(req.body.workoutStatus === 'Skip'){
-        // dayOfProgram.dateCalendar
-    }
-
-    if(!dayOfProgram) {
+    const thisDayOfProgram = await DayOfProgram.findById(req.params.id);
+    if(!thisDayOfProgram) {
         res.status(400);
         throw new Error('DayOfProgram not found');
     }
 
+    const program = await Program.findById(thisDayOfProgram.program_id);
+    if(req.body.workoutStatus === 'Done'){
+        thisDayOfProgram.workoutStatus = 'Done';
+        thisDayOfProgram.save();
+        // Program.findByIdAndUpdate(dayOfProgram.program_id, {latestDay: dayOfProgram.numberOfDay+1});
+        program.latestDay = thisDayOfProgram.numberOfDay+1;
+        await program.save();
+        res.status(200).json({message: 'update workout successfully'});
+    }else if(req.body.workoutStatus === 'Skip'){
+        console.log('-----------------SKIP WORKOUT-----------------');
+        const startNewDate = thisDayOfProgram.dateCalendar.addDays(1);
+        const dayPrograms = await DayOfProgram.find({program_id: program._id, numberOfDay: {$gte: program.latestDay}});
+        dayPrograms.sort((a,b) => a.dateCalendar - b.dateCalendar);
+        const mapEventDB = new Map((await CalendarEvent.find({user_id: req.user._id}))
+                                .map(obj => {
+                                    return [obj.eventDate.getTime(), obj];
+                                }));
+        // console.log(`days program length: ${dayPrograms.length}`);
+        // console.log(`mapEventDB: ${[...mapEventDB.entries()]}`);
+        const frequently = program.repeatType === 'Weekly' ? program.repeatWeekly: program.repeatDaily;
+        const newDates = services.generateDates(startNewDate, frequently, dayPrograms.length);
+        // console.log(`newDates: ${newDates}`);
+        // console.log(`dayPrograms::BF: ${dayPrograms}`);
+
+        const updateDayProgram = [];
+        const updateCalendarEvent = [];
+
+        dayPrograms.forEach((item, index, arr) => {
+            let itemDate = item.dateCalendar.getTime();
+            // console.log(`dateCalendar: ${itemDate}`);
+            // console.log(`loop daypg: ${mapEventDB.get(itemDate)}`);
+            
+            // remove skipped dayOfProgram from today date in CalendarEvent
+            let dayProgramEvent = mapEventDB.get(itemDate).dayProgram;
+            let removedIndex = dayProgramEvent.indexOf(item._id);
+            if(removedIndex > -1){
+                // dayProgramEvent.splice(removedIndex, 1);
+                // mapEventDB.get(itemDate).dayProgram = dayProgramEvent;
+                mapEventDB.get(itemDate).dayProgram.splice(removedIndex, 1);
+            }
+
+
+            let itemNewDate = newDates[index].getTime();
+
+            // if new date is not in calendarEvent before, then create new CalendarEvent object
+
+            let isUpsert = false;
+            if(mapEventDB.get(itemNewDate) !== undefined){
+                mapEventDB.get(itemNewDate).dayProgram.push(item._id);
+            }else {
+                isUpsert = true;
+                var newEvent = CalendarEvent({
+                    eventDate: newDates[index],
+                    user_id: req.user._id,
+                    dayProgram: [item._id]
+                })
+                mapEventDB.set(itemNewDate, newEvent);
+            }
+
+            updateDayProgram.push({
+                updateOne: {
+                    filter: {_id: item._id},
+                    update: { $set: {dateCalendar: newDates[index]}}
+                }
+            });
+        });
+        const listEvent = Array.from(mapEventDB.values());
+        listEvent.forEach((event) => {
+            updateCalendarEvent.push({
+                updateOne: {
+                    filter: { eventDate: event.eventDate },
+                    update: { $set: {dayProgram: event.dayProgram, user_id: req.user._id}},
+                    upsert: true
+                }
+            });
+        });
+        // console.log(`dayPrograms::AF: ${dayPrograms}`);
+        // console.log(`mapEventDB:: AF: ${[...mapEventDB.entries()]}`);
+        // console.log('///////////////////////////////////////////');
+        // console.log(`updateDayPg: ${[...updateDayProgram.entries()]}`);
+        // console.log(`updateEvent: ${[...updateCalendarEvent.entries()]}`);
+
+        try {
+	        const resUpdateDayPg = await DayOfProgram.bulkWrite(updateDayProgram);
+	        console.log(`dayPg upsertedCount: ${resUpdateDayPg.upsertedCount}`);
+	        console.log(`dayPg modifiedCount: ${resUpdateDayPg.modifiedCount}`);
+	        const resUpdateEvent = await CalendarEvent.bulkWrite(updateCalendarEvent);
+            console.log(`event upsertedCount: ${resUpdateEvent.upsertedCount}`);
+	        console.log(`event modifiedCount: ${resUpdateEvent.modifiedCount}`);
+            res.status(200).json({message: 'skip workout successfully'});
+        } catch (error) {
+            res.status(400);
+            throw new Error(error);
+        }
+    }
 });
 
 module.exports = {
