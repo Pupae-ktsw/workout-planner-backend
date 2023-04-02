@@ -5,7 +5,7 @@ const {
     getPrograms,
     getThisProgram,
     createProgram,
-    updateProgram,
+    // updateProgram,
     deleteProgram
 } = require('../controllers/program_controller');
 
@@ -16,7 +16,7 @@ const {
 router.use(validateToken);
 router.route('/').get(getPrograms).post(createProgram);
 router.route('/:id').get(getThisProgram)
-                    .put(updateProgram)
+                    // .put(updateProgram)
                     .delete(deleteProgram);
 router.route('/:programId/days').get(getDaysOfProgram);
 

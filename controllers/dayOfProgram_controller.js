@@ -212,7 +212,7 @@ const updateWorkoutStatus = asyncHandler(async (req, res) => {
                 mapEventDB.get(itemNewDate).dayProgram.push(item._id);
             }else {
                 isUpsert = true;
-                var newEvent = CalendarEvent({
+                let newEvent = CalendarEvent({
                     eventDate: newDates[index],
                     user_id: req.user._id,
                     dayProgram: [item._id]

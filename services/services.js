@@ -8,9 +8,18 @@ function generateDates(startDate, frequently, totalDays) {
         }
     }
     else if (Array.isArray(frequently)){
+        frequently.sort((a,b)=> a-b);
         console.log(`totalDays: ${totalDays}, repeatWeekly: ${frequently}`);
-
         const startDay = startDate.getDay();
+        let ind = frequently.findIndex(
+            x => x >= startDay);
+        if(ind < 0){
+            startDay = frequently[0];
+        }else {
+            frequently = splitArr(frequently, startDay);
+        }
+        console.log(`newFreq: ${frequently}`);
+        
         const days = Math.floor(totalDays/frequently.length);
         var dayMod = totalDays%frequently.length;
         console.log(`days: ${days}, dayMod: ${dayMod}`);
@@ -55,6 +64,13 @@ function generateDates(startDate, frequently, totalDays) {
         // }
     }
     return dates;
+}
+
+function splitArr(arr, num){
+    const index = arr.indexOf(num);
+    const first = arr.slice(index);
+    const second = arr.slice(0, index);
+    return first.concat(second);
 }
 
 Date.prototype.addDays = function (days) {
