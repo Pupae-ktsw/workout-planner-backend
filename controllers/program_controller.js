@@ -1,5 +1,7 @@
 // for handling error without using try/catch
 const asyncHandler = require('express-async-handler');
+const CalendarEvent = require('../models/calendarEvent_model');
+const DayOfProgram = require('../models/dayOfProgram_model');
 
 const Program = require('../models/program_model');
 const { generateDates } = require('../services/services');
@@ -64,76 +66,15 @@ const createProgram = asyncHandler(async (req, res) => {
 
     const frequently = repeatType === 'Weekly' ? req.body.repeatWeekly: req.body.repeatDaily;
     var dates = generateDates(startDate, frequently, totalDays);
+    // if(repeatType === 'Daily'){
+
+    // }
     if(dates.length != totalDays) {
         console.log(`dates3: ${dates}`);
         res.status(500);
         throw new Error('Wrong Calculated dates');
     }
-    // if(repeatType == 'Daily'){
-    //     let startDay = startDate;
-    //     for(let i=0; i<totalDays; i++){
-    //         dates.push(startDay);
-    //         startDay = startDay.addDays(req.body.repeatDaily);
-    //     }
-
-    // }else if (repeatType == 'Weekly'){
-    //     let repeatWeekly = req.body.repeatWeekly;
-    //     console.log(`totalDays: ${totalDays}, repeatWeekly: ${repeatWeekly}`);
-    //     const startDay = startDate.getDay();
-    //     for (let index=0; index<repeatWeekly.length; index++) {
-    //         dayOfWeek = repeatWeekly[index];
-    //         console.log(`dayofweek: ${dayOfWeek}`);
-    //         // Determine the day-of-week of the start date
-    //         // let startDay = startDate.getDay();
-    //         // console.log(`startDay: ${startDay}`);
-        
-    //         // Calculate the number of days between the start date and the next occurrence of the selected day-of-week
-    //         let delta = (dayOfWeek - startDay + 7) % 7;
-    //         if (delta === 0) {
-    //             delta = 7;
-    //         }
-    //         console.log(`delta: ${delta}`);
-        
-    //         // Add the number of days calculated to the start date to get the date of the first occurrence of the selected day-of-week
-    //         let firstDate = startDate.addDays(delta);
-    //         // console.log(`firstDate: ${firstDate}`);
-    //         // let days = Math.floor(totalDays/repeatWeekly.length);
-    //         // let mod = totalDays % repeatWeekly.length;
-    //         // if (mod !== 0) {
-    //         //     console.log(`[1]index: ${index}, mod: ${mod}, days: ${days}`);
-    //         //     days = index < mod ? days+1: days;
-    //         //     console.log(`[2]index: ${index}, mod: ${mod}, days: ${days}`);
-
-    //         // }
-    //         let days = totalDays % repeatWeekly.length == 0? 
-    //             totalDays/repeatWeekly.length: totalDays%repeatWeekly.length;
-    //         console.log(`days: ${days}`);
-    //         // Generate the dates of all subsequent occurrences of the selected day-of-week until the total number of days is reached
-    //         for (let i = 0; i < days; i++) {
-    //             dates.push(firstDate.addDays(i*7));
-    //             if(startDay === dayOfWeek){
-    //                 i=1;
-    //                 dates.push(startDate);
-    //             }
-    //         }
-    //     }
-    //     dates.sort((a, b) => a - b);
-    //     console.log(`dates1: ${dates}`);
-    //     console.log(`totalDays: ${totalDays}, dates: ${dates.length}`);
-    //     if(dates.length > totalDays){
-    //         let gap = dates.length - totalDays;
-    //         for(let j=0; j<gap; j++){
-    //             dates.pop();
-    //         }
-    //         console.log(`dates2: ${dates}`);
-    //     }
-    //     if(dates.length != totalDays) {
-    //         console.log(`dates3: ${dates}`);
-    //         res.status(500);
-    //         throw new Error('Wrong Calculated dates');
-    //     }
-    // }
-
+    console.log(`dates gen: ${dates}`);
     // create Program    
     const program = await Program.create({
         programName: programName,
@@ -179,11 +120,63 @@ const updateProgram = asyncHandler(async (req, res) => {
 // @route   DELETE /programs/:id
 // @access  Private
 const deleteProgram = asyncHandler(async (req, res) => {
-    const program = await Program.findOneAndDelete(req.params.id);
+    const program = await Program.findById(req.params.id);
     if(!program) {
         res.status(400);
         throw new Error('Program not found');
     }
+    const dayPrograms = await DayOfProgram.find({program_id: program._id});
+    const mapEventDB = new Map((await CalendarEvent.find({user_id: req.user._id}))
+    .map(obj => {
+        return [obj.eventDate.getTime(), obj];
+    }));
+    const updateCalendarEvent = [];
+    for ( var dayPg of dayPrograms) {
+        let event = mapEventDB.get(dayPg.dateCalendar.getTime());
+        let dayProgramEvent = event? event.dayProgram: undefined;
+        console.log(`date: ${dayPg.dateCalendar}, dayProgramEvent: ${dayProgramEvent}`);
+        let removedIndex = dayProgramEvent? dayProgramEvent.indexOf(dayPg._id): -1;
+        console.log(`removed Index: ${removedIndex}`);
+
+        if(removedIndex > -1){
+            dayProgramEvent.splice(removedIndex,1);
+            // mapEventDB.get(itemDate).dayProgram.splice(removedIndex, 1);
+        }
+        console.log(`dayProgramEvent Delete: ${dayProgramEvent}`);
+        if(dayProgramEvent !== undefined && dayProgramEvent !== null){
+            console.log(`push stack: date ${dayPg.dateCalendar}`);
+            updateCalendarEvent.push({
+                updateOne: {
+                    filter: {eventDate: dayPg.dateCalendar, user_id: req.user._id},
+                    update: {$set: {dayProgram: dayProgramEvent}}
+                }
+            });
+        }
+
+    }
+    console.log(`updateCalendar Event length: ${updateCalendarEvent.length}`);
+    if(updateCalendarEvent.length > 0){
+        const resUpdateEvent = await CalendarEvent.bulkWrite(updateCalendarEvent);
+        console.log(`event modifiedCount: ${resUpdateEvent.modifiedCount}`);
+    }
+    
+    if( resUpdateEvent.modifiedCount !== dayPrograms.length) {
+        res.status(400);
+        throw new Error ('Cannnot Delete DayProgram in CalendarEvent');
+    }
+    const resDeleteDayProgram = await DayOfProgram.deleteMany({program_id: program._id});
+    console.log(`res Delete: ${resDeleteDayProgram.ok}`);
+    console.log(`res Delete: ${resDeleteDayProgram.deletedCount}`);
+    
+    if(resDeleteDayProgram.deletedCount !== dayPrograms.length){
+        res.status(400);
+        throw new Error ('Cannnot Delete DayOfProgram');
+    }
+    program.remove();
+
+    res.status(200).json(`Delete Program: ${program.programName}`);
+
+
     // const deletedProgram = await Program.findByIdAndRemove(req.params.id, req.body);
     // res.status(200).json({ message: `Delete program ${deletedProgram.name}`});
 });
