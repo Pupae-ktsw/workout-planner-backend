@@ -3,7 +3,7 @@ const axios = require('axios');
 const validator = require('validator');
 const YoutubeVideo = require('../models/youtubeVideo_model');
 const youtubeApiKey = process.env.YOUTUBE_API_KEY;
-// const youtubeApiKey2 = process.env.YOUTUBE_API_KEY2;
+const youtubeApiKey2 = process.env.YOUTUBE_API_KEY2;
 const youtubeApiURL = 'https://www.googleapis.com/youtube/v3';
 const ytDuration = require('youtube-duration');
 
@@ -53,7 +53,7 @@ const getPlayListById = asyncHandler(async (req, res) => {
 // @access  Public
 const searchVid = asyncHandler(async (req, res) => {
     const searchQuery = req.query.search_query;
-    const searchUrl = `${youtubeApiURL}/search?key=${youtubeApiKey}&maxResults=25&order=relevance&type=video,playlist&part=snippet&q=${searchQuery}`;
+    const searchUrl = `${youtubeApiURL}/search?key=${youtubeApiKey2}&maxResults=25&order=relevance&type=video,playlist&part=snippet&q=${searchQuery}`;
     const response = await axios.get(searchUrl);
     console.log(`response1: ${response.data.items}`);
     if(response.status == 200){
