@@ -5,7 +5,7 @@ const youtubeVidSchema = mongoose.Schema({
     thumbnail: {type: String, require: true},
     title: {type: String, require: true},
     channel: {type: String, require: true},
-    duration: {type: Number, require: true}
+    duration: {type: String, require: true}
 });
 
 module.exports = mongoose.model('YoutubeVideo', youtubeVidSchema);

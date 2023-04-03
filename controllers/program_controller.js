@@ -119,6 +119,16 @@ const updateProgram = asyncHandler(async (req, res) => {
 // @desc    Delete Programs and
 // @route   DELETE /programs/:id
 // @access  Private
+const deleteAllDataByUser = asyncHandler(async (req, res) => {
+    const programs = await Program.find({user_id: req.user._id});
+    const programIds = programs.distinct('_id');
+    const dayOfPrograms = await DayOfProgram.find({program_id: {$in: programIds}});
+    const calendarEvents = await CalendarEvent.find({user_id: req.user._id});
+});
+
+// @desc    Delete Programs and
+// @route   DELETE /programs/:id
+// @access  Private
 const deleteProgram = asyncHandler(async (req, res) => {
     const program = await Program.findById(req.params.id);
     if(!program) {
@@ -158,12 +168,14 @@ const deleteProgram = asyncHandler(async (req, res) => {
     if(updateCalendarEvent.length > 0){
         const resUpdateEvent = await CalendarEvent.bulkWrite(updateCalendarEvent);
         console.log(`event modifiedCount: ${resUpdateEvent.modifiedCount}`);
-    }
-    
-    if( resUpdateEvent.modifiedCount !== dayPrograms.length) {
+
+        if( resUpdateEvent.modifiedCount !== dayPrograms.length) {
         res.status(400);
         throw new Error ('Cannnot Delete DayProgram in CalendarEvent');
+        }
     }
+    
+
     const resDeleteDayProgram = await DayOfProgram.deleteMany({program_id: program._id});
     console.log(`res Delete: ${resDeleteDayProgram.ok}`);
     console.log(`res Delete: ${resDeleteDayProgram.deletedCount}`);
