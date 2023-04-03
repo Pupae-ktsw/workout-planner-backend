@@ -28,6 +28,7 @@ app.use('/users', require('./routes/users_route'));
 app.use('/programs', require('./routes/programs_route'));
 app.use('/calendarEvents', require('./routes/calendarEvents_route'));
 app.use('/dayOfPrograms', require('./routes/dayOfProgram_route'));
+app.use('/notification', require('./routes/notification_route'));
 app.use(errorHandler);
 
 app.listen(port, () => {
