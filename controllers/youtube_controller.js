@@ -10,18 +10,18 @@ const ytDuration = require('youtube-duration');
 
 // @desc    Get playlist data by id
 // @route   GET /search/playlist/:playlistId
-// @access  Private
+// @access  Public
 const getPlayListById = asyncHandler(async (req, res) => {
     const getPlaylistUrl = `${youtubeApiURL}/playlistItems?key=${youtubeApiKey2}&maxResults=50&part=snippet&playlistId=${req.params.playlistId}`;
     const response = await axios.get(getPlaylistUrl);
     console.log(`response: ${response.data.items}`);
     if(response.status == 200){
         const items = response.data.items;
-        const searchResults = [];
+        var searchResults = [];
         var videoIds = '';
         for(var item of items){
-            videoIds += item.id.videoId + ','; 
-            let clipUrl = `https://youtu.be/${item.id.videoId}`;
+            videoIds += item.snippet.resourceId.videoId + ','; 
+            let clipUrl = `https://youtu.be/${item.snippet.resourceId.videoId}`;
             let clipImg = item.snippet.thumbnails.default.url;
             clipImg = clipImg.replace('/default', '/maxresdefault');
             let clip = YoutubeVideo({
@@ -51,7 +51,7 @@ const getPlayListById = asyncHandler(async (req, res) => {
 
 // @desc    search video on YouTube
 // @route   GET /search?search_query=<search_keyword>
-// @access  Private
+// @access  Public
 const searchVid = asyncHandler(async (req, res) => {
     const searchQuery = req.query.search_query;
     const searchUrl = `${youtubeApiURL}/search?key=${youtubeApiKey2}&maxResults=25&order=relevance&type=video,playlist&part=snippet&q=${searchQuery}`;
@@ -69,10 +69,8 @@ const searchVid = asyncHandler(async (req, res) => {
             }else if(item.id.kind.includes('playlist')){
                 clipUrl = `playlist/${item.id.playlistId}`;
             }
-            // let typeId = (item.id.kind).includes('video') ? item.id.videoId: item.id.playlistId;
             let clipImg = item.snippet.thumbnails.default.url;
             clipImg = clipImg.replace('/default', '/maxresdefault');
-            // clipUrl = (item.id.kind).includes('video') ? `https://youtu.be/${item.id.videoId}`: `playlist/${item.id.playlistId}`;
             let clip = YoutubeVideo({
                 url: clipUrl,
                 thumbnail: clipImg,
@@ -86,12 +84,7 @@ const searchVid = asyncHandler(async (req, res) => {
         console.log(`videoIds: ${videoIds}`);
         searchResults = await getDurationByIds(videoIds, searchResults);
         // // https://www.googleapis.com/youtube/v3/videos?id=<videoId1,videoId2>&part=contentDetails&key={YOUR_API_KEY}
-        // const durationUrl = `${youtubeApiURL}/videos?id=${videoIds}&part=contentDetails&key=${youtubeApiKey}`;
-        // console.log(`durationUrl: ${durationUrl}`);
-        // const responseDuration = await axios.get(durationUrl);
-        // if (responseDuration.status == 200){
 
-        // }
         console.log(`searchresult: ${searchResults}`);
         res.status(200).json(searchResults);
     }
@@ -111,16 +104,8 @@ async function getDurationByIds(Ids, videoList) {
         }
         const updatedSearchResult = Array.from(mapVideoList.values());
         return updatedSearchResult;
-        // for(var vid of videoList){
-        //     if (vid.url.includes('youtu.be')){
-        //         vid.duration = 
-        //     }
-        // }
     }else {
         return [];
     }
 }
-
-
-
-module.exports = { searchVid }
+module.exports = { searchVid, getPlayListById }
