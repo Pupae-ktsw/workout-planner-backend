@@ -22,8 +22,7 @@ const getPlayListById = asyncHandler(async (req, res) => {
         for(var item of items){
             videoIds += item.snippet.resourceId.videoId + ','; 
             let clipUrl = `https://youtu.be/${item.snippet.resourceId.videoId}`;
-            let clipImg = item.snippet.thumbnails.default.url;
-            clipImg = clipImg.replace('/default', '/maxresdefault');
+            let clipImg = item.snippet.thumbnails.medium.url;
             let clip = YoutubeVideo({
                 url: clipUrl,
                 thumbnail: clipImg,
@@ -69,8 +68,7 @@ const searchVid = asyncHandler(async (req, res) => {
             }else if(item.id.kind.includes('playlist')){
                 clipUrl = `playlist/${item.id.playlistId}`;
             }
-            let clipImg = item.snippet.thumbnails.default.url;
-            clipImg = clipImg.replace('/default', '/maxresdefault');
+            let clipImg = item.snippet.thumbnails.medium.url;
             let clip = YoutubeVideo({
                 url: clipUrl,
                 thumbnail: clipImg,
