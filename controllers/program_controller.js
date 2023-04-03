@@ -188,24 +188,8 @@ const deleteProgram = asyncHandler(async (req, res) => {
 
     res.status(200).json(`Delete Program: ${program.programName}`);
 
-
-    // const deletedProgram = await Program.findByIdAndRemove(req.params.id, req.body);
-    // res.status(200).json({ message: `Delete program ${deletedProgram.name}`});
 });
 
-// Date.prototype.addDays = function (days) {
-//     let date = new Date(this.valueOf());
-//     date.setDate(date.getDate() + days);
-//     return date;
-// }
-
-// function calTotalDuration(workouts) {
-//     let totalDuration = 0;
-//     workouts.forEach((item)=>{
-//         totalDuration += item.youtubeVid.duration;
-//     });
-//     return totalDuration;
-// }
 
 module.exports = {
     getPrograms, getThisProgram, createProgram, updateProgram, deleteProgram

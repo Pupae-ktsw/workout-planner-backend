@@ -1,4 +1,4 @@
-function generateDates(startDate, frequently, totalDays) {
+async function generateDates(startDate, frequently, totalDays) {
     var dates = [];
     if(typeof frequently === 'number'){
         let startDay = startDate;
@@ -18,7 +18,7 @@ function generateDates(startDate, frequently, totalDays) {
             startDate = startDate.addDays(frequently[0] - startDay + 7);
             startDay = frequently[0];
         }else {
-            frequently = splitArr(frequently, frequently[ind]);
+            frequently = await splitArr(frequently, frequently[ind]);
         }
         console.log(`newFreq: ${frequently}`);
 
@@ -61,17 +61,17 @@ function generateDates(startDate, frequently, totalDays) {
         let k = 1;
         console.log(`loop: ${totalDays-(keyArr.length*2)}`);
         for(let j=0; j<totalDays-(keyArr.length*2); j++) {
-            console.log(`----------round: ${j}--------------`);
+            // console.log(`----------round: ${j}--------------`);
             let next = new Date(keyArr[weekNo]).addDays(7*k); //Date
-            console.log(`next: ${next}`);
+            // console.log(`next: ${next}`);
             dates.push(next.getTime());
             if(next <  new Date(mapDate.get(keyArr[weekNo])).addDays(-7)){ //Date
                 k++;
-                console.log(`if j=${j}, k=${k}, weekNo=${weekNo}`);
+                // console.log(`if j=${j}, k=${k}, weekNo=${weekNo}`);
             }else {
                 weekNo++;
                 k=1;
-                console.log(`else j=${j}, k=${k}, weekNo=${weekNo}`);
+                // console.log(`else j=${j}, k=${k}, weekNo=${weekNo}`);
             }
         }
         dates = dates.concat(Array.from(mapDate.values()));

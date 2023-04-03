@@ -157,18 +157,30 @@ const createBulkDayOfProgram = async (daysProgram, dates, programId, userId) => 
 const updateWorkoutStatus = asyncHandler(async (req, res) => {
     const thisDayOfProgram = await DayOfProgram.findById(req.params.id);
     if(!thisDayOfProgram) {
-        res.status(400);
+        res.status(404);
         throw new Error('DayOfProgram not found');
     }
 
     const program = await Program.findById(thisDayOfProgram.program_id);
+    if(!program) {
+        res.status(404);
+        throw new Error('Program not found');
+    }
+
     if(req.body.workoutStatus === 'Done'){
         thisDayOfProgram.workoutStatus = 'Done';
-        thisDayOfProgram.save();
+        await thisDayOfProgram.save();
         // Program.findByIdAndUpdate(dayOfProgram.program_id, {latestDay: dayOfProgram.numberOfDay+1});
-        program.latestDay = thisDayOfProgram.numberOfDay+1;
-        await program.save();
-        res.status(200).json({message: 'update workout successfully'});
+        if(thisDayOfProgram.numberOfDay === program.totalDays && thisDayOfProgram.workoutStatus === 'Done'){
+            program.programStatus = 'Completed';
+            await program.save();
+            res.status(200).json({message: `Congratulation! you just finished ${program.programName}`});
+        }else {
+            program.latestDay = thisDayOfProgram.numberOfDay+1;
+            await program.save();
+            res.status(200).json({message: `Finished ${program.programName} Day ${thisDayOfProgram.numberOfDay}`});
+        }
+
     }else if(req.body.workoutStatus === 'Skip'){
         console.log('-----------------SKIP WORKOUT-----------------');
         const startNewDate = thisDayOfProgram.dateCalendar.addDays(1);
