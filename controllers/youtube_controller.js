@@ -3,7 +3,7 @@ const axios = require('axios');
 const validator = require('validator');
 const YoutubeVideo = require('../models/youtubeVideo_model');
 const youtubeApiKey = process.env.YOUTUBE_API_KEY;
-const youtubeApiKey2 = process.env.YOUTUBE_API_KEY2;
+// const youtubeApiKey2 = process.env.YOUTUBE_API_KEY2;
 const youtubeApiURL = 'https://www.googleapis.com/youtube/v3';
 const ytDuration = require('youtube-duration');
 
@@ -12,7 +12,7 @@ const ytDuration = require('youtube-duration');
 // @route   GET /search/playlist/:playlistId
 // @access  Public
 const getPlayListById = asyncHandler(async (req, res) => {
-    const getPlaylistUrl = `${youtubeApiURL}/playlistItems?key=${youtubeApiKey2}&maxResults=50&part=snippet&playlistId=${req.params.playlistId}`;
+    const getPlaylistUrl = `${youtubeApiURL}/playlistItems?key=${youtubeApiKey}&maxResults=50&part=snippet&playlistId=${req.params.playlistId}`;
     const response = await axios.get(getPlaylistUrl);
     console.log(`response: ${response.data.items}`);
     if(response.status == 200){
@@ -28,14 +28,14 @@ const getPlayListById = asyncHandler(async (req, res) => {
                 thumbnail: clipImg,
                 title: item.snippet.title,
                 channel: item.snippet.channelTitle,
-                duration: null
+                duration: 'PT30M20S'
             });
             searchResults.push(clip);
         }
-        videoIds = videoIds.slice(0,-1);
-        console.log(`videoIds: ${videoIds}`);
-        searchResults = await getDurationByIds(videoIds, searchResults);
-        console.log(`searchresult: ${searchResults}`);
+        // videoIds = videoIds.slice(0,-1);
+        // console.log(`videoIds: ${videoIds}`);
+        // searchResults = await getDurationByIds(videoIds, searchResults);
+        // console.log(`searchresult: ${searchResults}`);
 
         if(searchResults.length > 0){
             res.status(200).json(searchResults);
@@ -53,7 +53,7 @@ const getPlayListById = asyncHandler(async (req, res) => {
 // @access  Public
 const searchVid = asyncHandler(async (req, res) => {
     const searchQuery = req.query.search_query;
-    const searchUrl = `${youtubeApiURL}/search?key=${youtubeApiKey2}&maxResults=25&order=relevance&type=video,playlist&part=snippet&q=${searchQuery}`;
+    const searchUrl = `${youtubeApiURL}/search?key=${youtubeApiKey}&maxResults=25&order=relevance&type=video,playlist&part=snippet&q=${searchQuery}`;
     const response = await axios.get(searchUrl);
     console.log(`response1: ${response.data.items}`);
     if(response.status == 200){
@@ -78,13 +78,19 @@ const searchVid = asyncHandler(async (req, res) => {
             });
             searchResults.push(clip);
         }
-        videoIds = videoIds.slice(0,-1);
-        console.log(`videoIds: ${videoIds}`);
-        searchResults = await getDurationByIds(videoIds, searchResults);
+        // videoIds = videoIds.slice(0,-1);
+        // console.log(`videoIds: ${videoIds}`);
+        // searchResults = await getDurationByIds(videoIds, searchResults);
         // // https://www.googleapis.com/youtube/v3/videos?id=<videoId1,videoId2>&part=contentDetails&key={YOUR_API_KEY}
-
         console.log(`searchresult: ${searchResults}`);
-        res.status(200).json(searchResults);
+        
+        if(searchResults.length > 0){
+            res.status(200).json(searchResults);
+        }else {
+            res.status(404);
+            throw new Error('No result');
+        }
+        // res.status(200).json(searchResults);
     }
 });
 
