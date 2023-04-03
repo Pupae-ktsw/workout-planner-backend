@@ -7,6 +7,15 @@ const Program = require('../models/program_model');
 const { generateDates } = require('../services/services');
 const DayOfProgramController = require('./dayOfProgram_controller');
 
+// @desc    Get All suggest programs in main Page
+// @route   GET /programs/suggest
+// @access  Private
+const getSuggestProgram = asyncHandler(async (req, res) => {
+    const admin = await User.find({email: 'admin@gmail.com'});
+    const programs = await Program.find({user_id: admin._id});
+    res.status(200).json(programs);
+});
+
 // @desc    Get All programs of each user
 // @route   GET /programs
 // @access  Private
@@ -192,5 +201,5 @@ const deleteProgram = asyncHandler(async (req, res) => {
 
 
 module.exports = {
-    getPrograms, getThisProgram, createProgram, updateProgram, deleteProgram
+    getSuggestProgram, getPrograms, getThisProgram, createProgram, updateProgram, deleteProgram
 }
