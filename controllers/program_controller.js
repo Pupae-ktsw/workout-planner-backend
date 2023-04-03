@@ -2,6 +2,8 @@
 const asyncHandler = require('express-async-handler');
 const CalendarEvent = require('../models/calendarEvent_model');
 const DayOfProgram = require('../models/dayOfProgram_model');
+const YoutubeVideo = require('../models/youtubeVideo_model');
+const User = require('../models/user_model');
 
 const Program = require('../models/program_model');
 const { generateDates } = require('../services/services');
@@ -11,6 +13,12 @@ const DayOfProgramController = require('./dayOfProgram_controller');
 // @route   GET /programs/suggest
 // @access  Private
 const getSuggestProgram = asyncHandler(async (req, res) => {
+    const admin = await User.find({email: 'admin@gmail.com'});
+    const programs = await Program.find({user_id: admin._id});
+    res.status(200).json(programs);
+});
+
+const getThisSuggestProgram = asyncHandler(async (req, res) => {
     const admin = await User.find({email: 'admin@gmail.com'});
     const programs = await Program.find({user_id: admin._id});
     res.status(200).json(programs);
@@ -110,6 +118,57 @@ const createProgram = asyncHandler(async (req, res) => {
     res.status(200).json(program);
 });
 
+// @desc    Create Program by admin
+// @route   POST /programs/admin 
+// @access  Private
+const createProgramAdmin = async(req,res) => {
+    const daysProgram = req.body.dayOfProgram;
+    const program = await Program({
+        programName: req.body.programName,
+        thumbnail: daysProgram[0].youtubeVid.thumbnail
+    });
+    await program.save({validateBeforeSave: false});
+
+    var newDayOfPrograms = [];
+    var newYoutubeVids = []; 
+    const youtubeDB = new Map((await YoutubeVideo.find())
+                    .map(obj => {
+                        return [obj.url, obj];
+                    }));
+
+    try{
+        for(var index=0; index<daysProgram.length; index++){
+            let item = daysProgram[index];        
+            let ytVid = youtubeDB.get(item.youtubeVid.url);
+            if(!ytVid){
+                ytVid = YoutubeVideo({
+                    url: item.youtubeVid.url,
+                    thumbnail: item.youtubeVid.thumbnail,
+                    title: item.youtubeVid.title,
+                    channel: item.youtubeVid.channel,
+                });
+                youtubeDB.set(ytVid.url, ytVid);
+                newYoutubeVids.push(ytVid);
+            }
+            // create DayOfProgram
+            let dayPg = DayOfProgram({
+                program_id: program._id,
+                numberOfDay: item.numberOfDay,
+                youtubeVid: ytVid._id,
+                user_id: req.user._id
+            });
+            newDayOfPrograms.push(dayPg);
+
+        }
+        await YoutubeVideo.insertMany(newYoutubeVids, {ordered: true});
+        await DayOfProgram.insertMany(newDayOfPrograms, {validateBeforeSave: false});
+
+        res.status(200).json(program);
+    }catch(err){
+        console.log(err);
+    }
+}
+
 // @desc    Update Programs
 // @route   PUT /programs/:id
 // @access  Private
@@ -201,5 +260,5 @@ const deleteProgram = asyncHandler(async (req, res) => {
 
 
 module.exports = {
-    getSuggestProgram, getPrograms, getThisProgram, createProgram, updateProgram, deleteProgram
+    createProgramAdmin, getSuggestProgram, getPrograms, getThisProgram, createProgram, updateProgram, deleteProgram
 }

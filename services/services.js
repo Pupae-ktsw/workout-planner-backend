@@ -1,4 +1,4 @@
-async function generateDates(startDate, frequently, totalDays) {
+function generateDates(startDate, frequently, totalDays) {
     var dates = [];
     if(typeof frequently === 'number'){
         let startDay = startDate;
@@ -18,7 +18,7 @@ async function generateDates(startDate, frequently, totalDays) {
             startDate = startDate.addDays(frequently[0] - startDay + 7);
             startDay = frequently[0];
         }else {
-            frequently = await splitArr(frequently, frequently[ind]);
+            frequently = splitArr(frequently, frequently[ind]);
         }
         console.log(`newFreq: ${frequently}`);
 
