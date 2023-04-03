@@ -16,7 +16,34 @@ const getPlayListById = asyncHandler(async (req, res) => {
     const response = await axios.get(getPlaylistUrl);
     console.log(`response: ${response.data.items}`);
     if(response.status == 200){
+        const items = response.data.items;
+        const searchResults = [];
+        var videoIds = '';
+        for(var item of items){
+            videoIds += item.id.videoId + ','; 
+            let clipUrl = `https://youtu.be/${item.id.videoId}`;
+            let clipImg = item.snippet.thumbnails.default.url;
+            clipImg = clipImg.replace('/default', '/maxresdefault');
+            let clip = YoutubeVideo({
+                url: clipUrl,
+                thumbnail: clipImg,
+                title: item.snippet.title,
+                channel: item.snippet.channelTitle,
+                duration: null
+            });
+            searchResults.push(clip);
+        }
+        videoIds = videoIds.slice(0,-1);
+        console.log(`videoIds: ${videoIds}`);
+        searchResults = await getDurationByIds(videoIds, searchResults);
+        console.log(`searchresult: ${searchResults}`);
 
+        if(searchResults.length > 0){
+            res.status(200).json(searchResults);
+        }else {
+            res.status(404);
+            throw new Error('No result');
+        }
     }
 
 });
@@ -32,7 +59,7 @@ const searchVid = asyncHandler(async (req, res) => {
     console.log(`response1: ${response.data.items}`);
     if(response.status == 200){
         const items = response.data.items;
-        const searchResults = [];
+        var searchResults = [];
         var videoIds = '';
         for(var item of items){
             let clipUrl = '';
