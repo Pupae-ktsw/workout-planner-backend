@@ -1,7 +1,6 @@
 function generateDates(startDate, frequently, totalDays) {
     var dates = [];
     if(typeof frequently === 'number'){
-        console('Why here?');
         let startDay = startDate;
         for(let i=0; i<totalDays; i++){
             dates.push(startDay);

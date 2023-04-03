@@ -59,7 +59,7 @@ const createProgram = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error('Miss day of program');
     }
-    if(req.body.repeatWeekly.length > totalDays ) {
+    if(repeatType === 'Weekly' && req.body.repeatWeekly.length > totalDays ) {
         throw new Error(`Choose only ${totalDays} day of week`);
     }
 
