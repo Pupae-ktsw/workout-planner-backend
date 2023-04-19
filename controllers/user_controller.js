@@ -87,16 +87,23 @@ const signupUser = asyncHandler(async (req, res) => {
 // @route   PUT /users
 // @access  Private
 const updateUser = asyncHandler(async (req, res) => {
+    const {name, email} = req.body;
     const user = await User.findById(req.user._id);
     if(!user) {
         res.status(404);
         throw new Error('User not found');
     }
+    if(!name || !email){
+        res.status(400);
+        throw new Error('Cannot update empty field(s)');
+    }
     console.log(`req body user: ${JSON.stringify(req.body)}`);
 
-    const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
-        new: true,
-    })
+    const updatedUser = await User.findByIdAndUpdate(
+        user._id, 
+        {$set: {name: name,
+                email: email}},
+        {new: true});
     res.status(200).json(updatedUser);
 });
 
