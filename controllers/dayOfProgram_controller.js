@@ -240,10 +240,11 @@ const updateWorkoutStatus = asyncHandler(async (req, res) => {
             });
         });
         const listEvent = Array.from(mapEventDB.values());
+        console.log(`listEvent ${listEvent}`);
         listEvent.forEach((event) => {
             updateCalendarEvent.push({
                 updateOne: {
-                    filter: { eventDate: event.eventDate },
+                    filter: { eventDate: event.eventDate, user_id: req.user._id },
                     update: { $set: {dayProgram: event.dayProgram, user_id: req.user._id}},
                     upsert: true
                 }
@@ -251,9 +252,9 @@ const updateWorkoutStatus = asyncHandler(async (req, res) => {
         });
         // console.log(`dayPrograms::AF: ${dayPrograms}`);
         // console.log(`mapEventDB:: AF: ${[...mapEventDB.entries()]}`);
-        // console.log('///////////////////////////////////////////');
-        // console.log(`updateDayPg: ${[...updateDayProgram.entries()]}`);
-        // console.log(`updateEvent: ${[...updateCalendarEvent.entries()]}`);
+        // // console.log('///////////////////////////////////////////');
+        // console.log(`updateDayPg: ${JSON.stringify(updateDayProgram)}`);
+        // console.log(`updateEvent: ${JSON.stringify(updateCalendarEvent)}`);
 
         try {
 	        const resUpdateDayPg = await DayOfProgram.bulkWrite(updateDayProgram);
